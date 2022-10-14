@@ -1,0 +1,36 @@
+I can help you create limit order spreads inside ranges and do other useful things.
+
+You can control me by sending these commands:
+
+/layered - calculate layered limit orders for two extreme points on a chart <b>Does not consider leverage (yet :) )! Manage your risk accordingly!</b>
+
+Syntax: /layered <code>range_strategy size_strategy size_param size_amount range1 range2</code>
+
+Examples for "SHORT with size $21.25 - $19.70":
+                    /layered fib even startwith 67 21.25 19.70
+                    /layered even4 double total 800 21.25 19.70
+
+Examples for "LONG with size $13.75 - $14.250":
+                    /layered fib double total 1000 13.75 14.250
+                    /layered even5 even startwith 200 13.75 14.250
+
+
+<code>range_strategy</code>
+<i>fib</i> -  divide range in vertical distance by Fibonacci ratios. 6 layers pre defined: 0%, 23.6%, 38.2%, 50%, 61.8% and 100%
+<i>even6</i> - divide range in vertical distance by even chunks, last number definers number of layers
+
+<code>size_strategy</code>
+<i>even</i> - weigh orders evenly, but make last layer the size of all previous <pre>layers * 2</pre> to protect from liquidation
+<i>double</i> - double up with each order, so next layer is always the size of all previous <pre>layers * 2</pre>
+
+<code>size_param</code>
+<i>startwith</i> - start layer 1 with the amount specified, leave total order amount open to selected range & size strategies
+<i>total</i> - spend this total amount over all layers, including liquidation protection
+
+<code>size_amount</code>
+<i>number</i> - the amount of fiat/stablecoin as input to size_strategy & size_param algo, eg. "1000" or "845.19"
+
+<code>range1</code>
+<code>range2</code>
+<i>high_number low_number</i> - calculate layers based on a <b>short</b>
+<i>low_number high_number</i> - calculate layers based on a <b>long</b>

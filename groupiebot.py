@@ -69,7 +69,17 @@ def chatinfo(update, context):
 
 def help(update, context):
     """Send a message when the command /help is issued."""
-    update.message.reply_text('Help!')
+    with open("help.html", "r") as text_file:
+        help_text = text_file.read()
+    update.message.reply_text(help_text, quote=False, parse_mode='HTML')
+
+
+def pray(update, context):
+    with open("pray.html", "r") as text_file:
+        pray_text = text_file.read()
+    if len(context.args) != 1:
+        return update.message.reply_text("Expecting one ticker as param, eg. SUSHI", quote=False)
+    update.message.reply_text(pray_text.replace("SUSHI", context.args[0]), quote=False, parse_mode='HTML')
 
 
 def error(update, context):
@@ -234,6 +244,8 @@ def main():
     # commands
     # dp.add_handler(CommandHandler("chatinfo", chatinfo))
     dp.add_handler(CommandHandler("layered", layered, Filters.chat(config["chat_from_id"])))
+    dp.add_handler(CommandHandler("help", help, Filters.chat(config["chat_from_id"])))
+    dp.add_handler(CommandHandler("pray", pray, Filters.chat(config["chat_from_id"])))
 
     # on noncommand
     dp.add_handler(MessageHandler(Filters.chat(config["chat_from_id"]), extract_media_and_caption))
