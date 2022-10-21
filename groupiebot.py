@@ -107,22 +107,20 @@ def check_input(range_strategy, size_strategy, size_param, size_amount, range1, 
 def print_layers(layer_array, size_array):
     if len(layer_array) != len(size_array):
         raise ValueError("Length of layer/size arrays differ! Internal Error.")
-    padding = 3
+    min_padding = config["round_to"]+1
     for lp in layer_array:
-        if len(str(lp)) > padding:
-            padding = len(str(lp))+1
-    total_coins = 0
+        if len(str(lp)) > min_padding:
+            min_padding = len(str(lp))+1
     ret = "<pre>"
     for i in range(0, len(layer_array)):
         lp = str(layer_array[i])
         ret += "Layer "+str(i+1)+": " + lp
-        for _ in range(0, padding-len(lp)):
+        for _ in range(0, min_padding-len(lp)):
             ret += " "
-        total_coins += round(size_array[i]/layer_array[i], 4)
-        ret += "- Size: " + str(size_array[i])+" / "+str(round(size_array[i]/layer_array[i], 4))+"\n"
-    for _ in range(0, padding-1):
+        ret += "- Size: " + str(size_array[i])+"\n"
+    for _ in range(0, min_padding-1):
         ret += " "
-    ret += "Total Order Size: "+str(sum(size_array))+" / "+str(round(total_coins, 4))
+    ret += "Total Order Size: "+str(sum(size_array))
     ret += "</pre>"
     return ret
 
@@ -134,20 +132,20 @@ def range_fib(first, last):
     s3 = span*50/100
     s4 = span*61.8/100
     ret = [first]
-    ret += [round((first-s1), 4)]
-    ret += [round((first-s2), 4)]
-    ret += [round((first-s3), 4)]
-    ret += [round((first-s4), 4)]
+    ret += [round((first-s1), config["round_to"])]
+    ret += [round((first-s2), config["round_to"])]
+    ret += [round((first-s3), config["round_to"])]
+    ret += [round((first-s4), config["round_to"])]
     ret += [last]
     return ret
 
 
 def range_even(first, last, layers):
     span = first - last
-    part = round(span/layers, 4)
+    part = round(span/layers, config["round_to"])
     ret = [first]
     for i in range(1, layers-1):
-        ret += [round(first+(part*i), 4)]
+        ret += [round(first+(part*i), config["round_to"])]
     ret += [last]
     return ret
 
@@ -165,14 +163,14 @@ def size_even_maxtotal(layers, max_total):
     n = round(max_total/d, 2)
     ret = size_even_startwith(layers, n)
     rem = max_total - sum(ret)
-    ret[layers-1] = round(ret[layers-1] + rem, 2)
+    ret[layers-1] = round(ret[layers-1] + rem, config["fiat_round_to"])
     return ret
 
 
 def size_double_startwith(layers, start_with):
     ret = [start_with]
     for _ in range(1, layers):
-        ret = ret + [round(sum(ret) * 2, 2)]
+        ret = ret + [round(sum(ret) * 2, config["fiat_round_to"])]
     return ret
 
 
@@ -181,7 +179,7 @@ def size_double_maxtotal(layers, max_total):
     n = round(max_total/d, 2)
     ret = size_double_startwith(layers, n)
     rem = max_total - sum(ret)
-    ret[layers-1] = round(ret[layers-1] + rem, 2)
+    ret[layers-1] = round(ret[layers-1] + rem, config["fiat_round_to"])
     return ret
 
 
