@@ -53,7 +53,7 @@ def extract_media_and_caption(update, context):
         global media_group
         global timestamp
         global last_media_group_id
-        if len(media_group) == 0 and update.message.caption and re.search("(P|p)otential (LONG|SHORT|SPOT)", update.message.caption):
+        if len(media_group) == 0 and update.message.caption and re.search(config["caption_regex"], update.message.caption):
             media_group.append(InputMediaPhoto(update.message.photo[-1].file_id, caption=update.message.caption))
             last_media_group_id = update.message.media_group_id
             timestamp = datetime.now()
