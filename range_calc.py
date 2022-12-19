@@ -4,8 +4,11 @@ import re
 with open('config.yml', 'rb') as f:
     config = yaml.safe_load(f)
 
-def check_input(range_strategy, size_strategy, size_param, size_amount, range1, range2):
+
+def check_input(range_strategy, size_strategy, size_param, size_amount, range1, range2, leverage):
     ret = ""
+    if not re.search(r'^[\d\.]+$', str(leverage)):
+        ret += "param 7 leverage needs to be a number!\n"
     if not re.search(r'^[\d\.]+$', size_amount):
         ret += "param 4 size_amount needs to be a number!\n"
     if not re.search(r'^[\d\.]+$', range1):
@@ -21,23 +24,61 @@ def check_input(range_strategy, size_strategy, size_param, size_amount, range1, 
     return ret
 
 
-def print_layers(layer_array, size_array):
+def print_layers(layer_array, size_array, leverage, exchange):
+    if leverage != 0:
+        if exchange == "kucoin":
+            leverage += 5.2
+        else:
+            leverage += 1
     if len(layer_array) != len(size_array):
         raise ValueError("Length of layer/size arrays differ! Internal Error.")
     min_padding = config["round_to"]+1
     for lp in layer_array:
-        if len(str(lp)) > min_padding:
+        if len(str(lp)) > min_padding-1:
             min_padding = len(str(lp))+1
+    total_coins = 0.0
+    total_spent = 0.0
     ret = "<pre>"
-    for i in range(0, len(layer_array)):
-        lp = str(layer_array[i])
-        ret += "Layer "+str(i+1)+": " + lp
-        for _ in range(0, min_padding-len(lp)):
-            ret += " "
-        ret += "- Size: " + str(size_array[i])+"\n"
-    for _ in range(0, min_padding-1):
+    ret += "L: Entry"
+    for _ in range(0, min_padding-5):
         ret += " "
-    ret += "Total Order Size: "+str(sum(size_array))
+    ret += "- USDT  / COINs  CostPer  Liq\n"
+    for i in range(0, len(layer_array)):
+        lp = layer_array[i]
+        ret += str(i+1)+": " + str(lp)
+        for _ in range(0, min_padding-len(str(lp))):
+            ret += " "
+        coins = size_array[i]/layer_array[i]
+        total_coins += coins
+        ret += "- " + str(size_array[i])+" / "+str(round(total_coins, 2))
+        total_spent += size_array[i]
+        # liq_price_local = (lp*lev_value)/100
+        cost_per_coin = total_spent / total_coins
+        ret += " " + str(round(cost_per_coin, config["round_to"]))
+        if leverage != 0:
+            lev_value = 100 / leverage
+            liq_price_global_val = (cost_per_coin*lev_value)/100
+            if layer_array[0] > layer_array[-1]:
+                # Long
+                # liq_at = lp - liq_price_local
+                liq_price_global = lp - liq_price_global_val
+                ret += " " + str(round(liq_price_global, config["round_to"]))
+                if len(layer_array) > i+1 and liq_price_global > layer_array[i+1]:
+                    ret += " !!! Liquidation Warning !!!\n"
+                else:
+                    ret += "\n"
+            else:
+                # Short
+                # liq_at = lp + liq_price_local
+                liq_price_global = lp + liq_price_global_val
+                ret += " " + str(round(liq_price_global, config["round_to"]))
+                if len(layer_array) > i+1 and liq_price_global < layer_array[i+1]:
+                    ret += " !!! Liquidation Warning !!!\n"
+                else:
+                    ret += "\n"
+        else:
+            ret += "\n"
+    ret += "Order Size: "+str(sum(size_array))+" USDT"
     ret += "</pre>"
     return ret
 
@@ -62,7 +103,7 @@ def range_even(first, last, layers):
     part = round(span/layers, config["round_to"])
     ret = [first]
     for i in range(1, layers-1):
-        ret += [round(first+(part*i), config["round_to"])]
+        ret += [round(first-(part*i), config["round_to"])]
     ret += [last]
     return ret
 
@@ -100,13 +141,14 @@ def size_double_maxtotal(layers, max_total):
     return ret
 
 
-def layered(range_strategy, size_strategy, size_param, size_amount, range1, range2):
-    input_val_msg = check_input(range_strategy, size_strategy, size_param, size_amount, range1, range2)
+def layered(range_strategy, size_strategy, size_param, size_amount, range1, range2, leverage, exchange="binance"):
+    input_val_msg = check_input(range_strategy, size_strategy, size_param, size_amount, range1, range2, leverage)
     if bool(input_val_msg):
         return input_val_msg
     range1 = float(range1)
     range2 = float(range2)
     size_amount = float(size_amount)
+    leverage = float(leverage)
 
     if range_strategy == "fib":
         layers = 6
@@ -137,4 +179,4 @@ def layered(range_strategy, size_strategy, size_param, size_amount, range1, rang
     else:
         return "size_strategy not supported: "+size_strategy
 
-    return print_layers(larr, sarr)
+    return print_layers(larr, sarr, leverage, exchange)
