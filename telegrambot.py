@@ -103,8 +103,6 @@ def main():
     loop.create_task(sync_coingecko_derivs_and_report_price_movements())
     loop.create_task(sync_coingecko_trending())
     loop.run_forever()
-    # sync_coingecko_derivs_and_report_price_movements()
-    # asyncio.run(bot.run_until_disconnected())
     bot.run_until_disconnected()
 
 
