@@ -6,13 +6,13 @@
 Simple Bot to calculate layered limit orders for two extreme points on a chart
 
 Usage:
-# python3 groupiediscordbot.py
+# python3 discordbot.py
 Press Ctrl-C on the command line or send a signal to the process to stop the bot.
 """
 
 import re
 import yaml
-import range_calc
+from lib import range_calc
 
 import discord
 from discord.ext import commands
@@ -49,7 +49,7 @@ async def layered(ctx, *, message: str):
 @bot.command()
 async def layered_help(ctx):
     """Send a message when the command /help is issued."""
-    with open("help.html", "r") as text_file:
+    with open("templates/help.html", "r") as text_file:
         help_text = text_file.read()
     await ctx.send(re.sub(r'<.*?>', '', help_text))
 

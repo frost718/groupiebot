@@ -7,13 +7,12 @@ Simple Telegram Bot to forward Media Groups (Albums, a group of images with a ca
 from one Telegram chat to another
 
 Usage:
-# python3 bot.py
+# python3 telegrambot.py
 Press Ctrl-C on the command line or send a signal to the process to stop the bot.
 """
 import yaml
-import range_calc
+from lib import range_calc, coingecko
 import re
-import coingecko
 import asyncio
 from telethon import TelegramClient
 from telethon import events
@@ -23,7 +22,7 @@ from telethon import events
 with open('config.yml', 'rb') as f:
     config = yaml.safe_load(f)
 
-bot = TelegramClient("groupiebot", config["api_id"], config["api_hash"]).start(bot_token=config["bot_token"])
+bot = TelegramClient("telegrambot", config["api_id"], config["api_hash"]).start(bot_token=config["bot_token"])
 
 
 @bot.on(events.Album(chats=config["chat_from_id"]))
@@ -51,7 +50,7 @@ async def chat_info(event):
 
 @bot.on(events.NewMessage(incoming=True, chats=config["chat_from_id"], pattern='/pray'))
 async def pray(event):
-    with open("pray.html", "r") as text_file:
+    with open("templates/pray.html", "r") as text_file:
         pray_text = text_file.read()
     ret = "Expecting one ticker as param, eg. SUSHI"
     if len(event.raw_text.split()) == 2:

@@ -131,4 +131,5 @@ dmypy.json
 config.yml
 scratch*
 
-groupiebot.session
+telegrambot.session-journal
+telegrambot.session
