@@ -1,0 +1,4 @@
+PyYAML
+Telethon
+pycoingecko
+discord
